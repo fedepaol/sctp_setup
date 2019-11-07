@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sctpserver
+  labels:
+    app: sctpserver
+spec:
+  selector:
+    app: sctpserver
+  ports:
+    - name: sctpserver
+      protocol: SCTP
+      port: 30100
+      targetPort: "sctpserver"

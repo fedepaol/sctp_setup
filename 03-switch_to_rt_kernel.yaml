@@ -1,0 +1,76 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rtos-entrypoint
+data:
+  entrypoint.sh: |
+    #!/bin/bash
+    set -eo pipefail
+    echo "###################################"
+    echo "Script to enable sctp kernel module"
+    echo "###################################"
+    # https://src.osci.redhat.com/rpms/microcode_ctl/pull-request/9
+    rpm-ostree override replace http://file.rdu.redhat.com/~walters/microcode_ctl-20190918-3.rhcos.1.el8.x86_64.rpm
+
+    # Enable RHEL8.1 rpm-md repos (point to a local mirror/Satellite etc.)
+    mkdir -p /etc/yum.repos.d
+    cat > /etc/yum.repos.d/rhel-8-1.repo << 'EOF'
+    [baseos]
+    baseurl=http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/RHEL-8/latest-RHEL-8.1.1/compose/BaseOS/$basearch/os
+    gpgcheck=0
+
+    [appstream]
+    baseurl=http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/RHEL-8/latest-RHEL-8.1.1/compose/AppStream/$basearch/os
+    gpgcheck=0
+
+    [rt]
+    baseurl=http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/RHEL-8/latest-RHEL-8.1.1/compose/RT/$basearch/os
+    gpgcheck=0
+    EOF
+
+    # Swap to RT kernel
+    rpm-ostree override remove kernel{,-core,-modules,-modules-extra} --install kernel-rt --install kernel-rt-core --install kernel-rt-modules --install kernel-rt-modules-extra
+    systemctl reboot
+
+---
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rtos-ds
+  labels:
+    app: rtos-ds
+spec:
+  selector:
+    matchLabels:
+      app: rtos-ds
+  template:
+    metadata:
+      labels:
+        app: rtos-ds
+    spec:
+      hostNetwork: true
+      containers:
+      - name: rtos-loader
+        image: ubi8/ubi-minimal
+        command: ['sh', '-c', 'cp /script/entrypoint.sh /host/tmp && chmod +x /host/tmp/entrypoint.sh && echo "applying rt kernel" && chroot /host /tmp/entrypoint.sh && sleep infinity']
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /script
+          name: rtos-script
+        - mountPath: /host
+          name: host
+      hostNetwork: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: rtos-entrypoint
+        name: rtos-script
+      - hostPath:
+          path: /
+          type: Directory
+        name: host

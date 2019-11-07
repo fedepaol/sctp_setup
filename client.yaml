@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sctpclient
+  labels:
+    app: sctpclient
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sctpclient
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: sctpclient
+    spec:
+      restartPolicy: Always
+      containers:
+        - image: quay.io/wcaban/net-toolbox:latest
+          imagePullPolicy: IfNotPresent
+          name: sctpclient
+          command: ["sleep", "infinity"]

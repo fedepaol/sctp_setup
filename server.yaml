@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sctpserver
+  labels:
+    app: sctpserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sctpserver
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: sctpserver
+    spec:
+      restartPolicy: Always
+      containers:
+        - image: quay.io/wcaban/net-toolbox:latest
+          imagePullPolicy: IfNotPresent
+          name: sctpserver
+          command: ["sleep", "infinity"]
+          ports:
+            - containerPort: 30100
+              name: sctpserver
+              protocol: SCTP
