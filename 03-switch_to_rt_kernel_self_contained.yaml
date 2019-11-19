@@ -1,0 +1,65 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rtos-entrypoint
+data:
+  entrypoint.sh: |
+    #!/bin/bash
+    set -eo pipefail
+    echo "###################################"
+    echo "Script to enable sctp kernel module"
+    echo "###################################"
+    # https://src.osci.redhat.com/rpms/microcode_ctl/pull-request/9
+    cd /tmp
+    # rpm-ostree override replace microcode_ctl-20190918-3.rhcos.1.el8.x86_64.rpm
+
+    rpm-ostree override remove kernel{,-core,-modules,-modules-extra} \
+        --install kernel-rt-core-4.18.0-147.0.3.rt24.95.el8_1.x86_64.rpm \
+        --install kernel-rt-modules-4.18.0-147.0.3.rt24.95.el8_1.x86_64.rpm \
+        --install kernel-rt-modules-extra-4.18.0-147.0.3.rt24.95.el8_1.x86_64.rpm 
+    
+    echo "Rebooting"
+    systemctl reboot
+
+---
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rtos-ds
+  labels:
+    app: rtos-ds
+spec:
+  selector:
+    matchLabels:
+      app: rtos-ds
+  template:
+    metadata:
+      labels:
+        app: rtos-ds
+    spec:
+      hostNetwork: true
+      containers:
+      - name: rtos-loader
+        image: fedepaol/rtkernel:v1.1
+        command: ['sh', '-c', 'cp /script/entrypoint.sh /host/tmp && cp /rt-kernel/*.rpm /host/tmp && chmod +x /host/tmp/entrypoint.sh && echo "applying rt kernel" && chroot /host /tmp/entrypoint.sh && sleep infinity']
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /script
+          name: rtos-script
+        - mountPath: /host
+          name: host
+      hostNetwork: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: rtos-entrypoint
+        name: rtos-script
+      - hostPath:
+          path: /
+          type: Directory
+        name: host
