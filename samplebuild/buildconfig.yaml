@@ -1,0 +1,20 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "sctp-sample-build"
+spec:
+  runPolicy: "Serial"
+  triggers:
+    - type: "ImageChange"
+  source:
+    git:
+      uri: "https://github.com/fedepaol/sctp_setup"
+      ref: "master"
+      contextDir: "samplebuild/src"
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Dockerfile.sctp
+  output:
+    to:
+      kind: "ImageStreamTag"
+      name: "sctp-sample:latest"
