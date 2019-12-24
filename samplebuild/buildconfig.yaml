@@ -13,7 +13,7 @@ spec:
       contextDir: "samplebuild/src"
   strategy:
     dockerStrategy:
-      dockerfilePath: Dockerfile.sctp
+      dockerfilePath: "samplebuild/src/Dockerfile.sctp"
   output:
     to:
       kind: "ImageStreamTag"
