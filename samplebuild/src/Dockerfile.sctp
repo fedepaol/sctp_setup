@@ -1,6 +1,5 @@
 FROM centos:7
 RUN yum -y groupinstall 'Development Tools' && yum -y install lksctp-tools-devel gcc lksctp-tools kernel-modules-extra && yum clean all -y
 COPY samplebuild/src/* /src/
-RUN ls /src
 RUN gcc /src/sctp.c -o /usr/local/bin/sctpclient -lsctp
 CMD ["/usr/local/bin/sctpclient"]
