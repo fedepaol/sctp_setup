@@ -1,4 +1,3 @@
-/SCTPClient.C
 // To compile - gcc sctpclt.c -o client -lsctp
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,8 +11,7 @@
 #define MAX_BUFFER 1024
 #define MY_PORT_NUM 62324 /* This can be changed to suit the need and should be same in server and client */
 
-int
-main (int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   int connSock, in, i, ret, flags;
   struct sockaddr_in servaddr;
@@ -31,42 +29,41 @@ main (int argc, char* argv[])
   //buffer[12] = '\0';
   datalen = strlen(buffer);
 
-  connSock = socket (AF_INET, SOCK_STREAM, IPPROTO_SCTP);
+  connSock = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
 
   if (connSock == -1)
   {
-      printf("Socket creation failed\n");
-      perror("socket()");
-      exit(1);
+    printf("Socket creation failed\n");
+    perror("socket()");
+    exit(1);
   }
 
-  bzero ((void *) &servaddr, sizeof (servaddr));
+  bzero((void *)&servaddr, sizeof(servaddr));
   servaddr.sin_family = AF_INET;
-  servaddr.sin_port = htons (MY_PORT_NUM);
-  servaddr.sin_addr.s_addr = inet_addr ("127.0.0.1");
+  servaddr.sin_port = htons(MY_PORT_NUM);
+  servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-  ret = connect (connSock, (struct sockaddr *) &servaddr, sizeof (servaddr));
+  ret = connect(connSock, (struct sockaddr *)&servaddr, sizeof(servaddr));
 
   if (ret == -1)
   {
-      printf("Connection failed\n");
-      perror("connect()");
-      close(connSock);
-      exit(1);
+    printf("Connection failed\n");
+    perror("connect()");
+    close(connSock);
+    exit(1);
   }
 
-  ret = sctp_sendmsg (connSock, (void *) buffer, (size_t) datalen,
-        NULL, 0, 0, 0, 0, 0, 0);
-  if(ret == -1 )
+  ret = sctp_sendmsg(connSock, (void *)buffer, (size_t)datalen,
+                     NULL, 0, 0, 0, 0, 0, 0);
+  if (ret == -1)
   {
     printf("Error in sctp_sendmsg\n");
     perror("sctp_sendmsg()");
   }
   else
-      printf("Successfully sent %d bytes data to server\n", ret);
+    printf("Successfully sent %d bytes data to server\n", ret);
 
-  close (connSock);
+  close(connSock);
 
   return 0;
 }
-
