@@ -1,5 +1,5 @@
 FROM registry.access.redhat.com/ubi8/ubi AS builder
-RUN yum -y groupinstall 'Development Tools' && yum -y install lksctp-tools-devel gcc lksctp-tools kernel-modules-extra && yum clean all -y
+RUN yum -y install lksctp-tools-devel gcc lksctp-tools kernel-modules-extra && yum clean all -y
 COPY samplebuild/src/* /src/
 RUN gcc /src/sctp.c -o /src/sctpclient -lsctp
 FROM registry.access.redhat.com/ubi8/ubi
