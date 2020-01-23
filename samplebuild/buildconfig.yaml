@@ -11,6 +11,10 @@ spec:
       uri: "https://github.com/fedepaol/sctp_setup"
       ref: "master"
       contextDir: "samplebuild/src"
+    secrets:
+      - secret:
+          name: etc-pki-entitlement
+        destinationDir: etc-pki-entitlement
   strategy:
     dockerStrategy:
       dockerfilePath: "samplebuild/src/Dockerfile.sctp"
