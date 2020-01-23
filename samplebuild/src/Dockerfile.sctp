@@ -10,8 +10,8 @@ RUN rm /etc/rhsm-host && \
     # Initialize /etc/yum.repos.d/redhat.repo
     # See https://access.redhat.com/solutions/1443553
     subscription-manager repos --list && \
-    yum repolist --disablerepo=* && \
-    subscription-manager repos --enable <enabled-repo> && \
+    # yum repolist --disablerepo=* && \
+    # subscription-manager repos --enable <enabled-repo> && \
     yum -y update && \
     yum -y install lksctp-tools-devel gcc lksctp-tools kernel-modules-extra && \
     # Remove entitlements and Subscription Manager configs
